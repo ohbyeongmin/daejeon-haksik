@@ -3,12 +3,12 @@ package crawling
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/ohbyeongmin/daejeon-haksik/utils"
 )
 
 type DaejeonHRCUrl struct {
@@ -37,14 +37,13 @@ func init() {
 
 func (d *DaejeonHRCUrl) setNttSn() {
 	url := d.getDietListURL()
+
 	res, err := http.Get(url)
-	if err != nil {
-		log.Panic(err)
-	}
+	utils.HandleErr(err)
+
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		log.Panic(err)
-	}
+	utils.HandleErr(err)
+
 	defer res.Body.Close()
 
 	doc.Find(".nttInfoBtn").Each(func(i int, s *goquery.Selection) {
@@ -60,13 +59,11 @@ func (d *DaejeonHRCUrl) setFileKey() {
 	var downloadLink string
 	url := dURL.getDietInfoURL()
 	res, err := http.Get(url)
-	if err != nil {
-		log.Panic(err)
-	}
+	utils.HandleErr(err)
+
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		log.Panic(err)
-	}
+	utils.HandleErr(err)
+
 	defer res.Body.Close()
 
 	doc.Find(".file").Children().Each(func(i int, s *goquery.Selection) {
@@ -94,18 +91,13 @@ func (d DaejeonHRCUrl) getDownloadURL() string {
 func DownloadDietFile() {
 	downloadLink := dURL.getDownloadURL()
 	downRes, err := http.Get(downloadLink)
-	if err != nil {
-		log.Panic(err)
-	}
+	utils.HandleErr(err)
 
 	download, err := ioutil.ReadAll(downRes.Body)
-	if err != nil {
-		log.Panic(err)
-	}
-	file, err := os.Create("./" + "diet.xlsx")
+	utils.HandleErr(err)
 
-	if err != nil {
-		log.Panic(err)
-	}
+	file, err := os.Create("./" + "diet.xlsx")
+	utils.HandleErr(err)
+
 	file.Write(download)
 }
