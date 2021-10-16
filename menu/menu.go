@@ -2,69 +2,116 @@ package menu
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/ohbyeongmin/daejeon-haksik/constants"
+	"github.com/ohbyeongmin/daejeon-haksik/utils"
 	"github.com/xuri/excelize/v2"
 )
 
-type Week int
-type LunOrDin int
-
-const (
-	MON Week = iota + 2
-	TUE
-	WED
-	THU
-	FRI
-)
-
-const (
-	LUNCH LunOrDin = iota
-	DINNER
-)
-
-type Menu map[Week][]string
-
-type MenuTable struct {
-	Table map[LunOrDin]Menu
+func getToday() time.Weekday {
+	t := time.Now()
+	return t.Weekday()
 }
 
-var mem *MenuTable
+func getTomorrow() time.Weekday {
+	t := time.Now()
+	return t.Add(time.Hour * 24).Weekday()
+}
+
+type HRCMenuService struct{}
+
+func (HRCMenuService) Today(which constants.LunOrDin) []string {
+	return mem.GetOne(which, getToday()-2)
+}
+func (HRCMenuService) Tomorrow(which constants.LunOrDin) []string {
+	return mem.GetOne(which, getTomorrow())
+}
+func (HRCMenuService) AllWeeks(which constants.LunOrDin) [][]string {
+	return mem.GetAll(which)
+}
+
+const (
+	minRowNum int = 4
+	maxRowNum int = 23
+	minColNum int = 2
+	maxColNum int = 7
+)
+
+type menu map[time.Weekday][]string
+
+type menutable struct {
+	table map[constants.LunOrDin]menu
+}
+
+var mem *menutable
 
 func init() {
-	mem = &MenuTable{
-		Table: make(map[LunOrDin]Menu),
+	// crawling.DownloadDietFile()
+	mem = &menutable{
+		table: make(map[constants.LunOrDin]menu),
 	}
-	mem.Table[LUNCH] = make(Menu)
-	mem.Table[DINNER] = make(Menu)
+	mem.table[constants.LUNCH] = make(menu)
+	mem.table[constants.DINNER] = make(menu)
+
+	mem.parseMenuFile()
 }
 
-func Start() {
-	f, _ := excelize.OpenFile("diet.xlsx")
+func (m *menutable) parseMenuFile() {
+	f, err := excelize.OpenFile("diet.xlsx")
+	utils.HandleErr(err)
 	sheetName := f.GetSheetList()[0]
 
 	rows, err := f.GetRows(sheetName)
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	lunchOrDinner := LUNCH
+	lunchOrDinner := constants.LUNCH
 	for i, row := range rows {
-		if i < 4 {
+		if i < minRowNum {
 			continue
 		}
-		if i > 23 {
+		if i > maxRowNum {
 			break
 		}
 		for j, colCell := range row {
-			if j < 2 || j >= 7 {
+			if j < minColNum || j >= maxColNum {
 				if colCell == "석  식" {
-					lunchOrDinner = DINNER
+					lunchOrDinner = constants.DINNER
 				}
 				continue
 			}
-			mem.Table[lunchOrDinner][Week(j)] = append(mem.Table[lunchOrDinner][Week(j)], colCell)
+			mem.table[lunchOrDinner][time.Weekday(j-1)] = append(mem.table[lunchOrDinner][time.Weekday(j-1)], colCell)
 		}
 	}
-	fmt.Println(mem.Table[DINNER][TUE])
+}
+
+func (m menutable) GetOne(which constants.LunOrDin, weekDay time.Weekday) []string {
+	return m.table[which][weekDay]
+}
+
+func (m menutable) GetAll(which constants.LunOrDin) [][]string {
+	var allMenu = make([][]string, 5)
+	for k, v := range m.table[which] {
+		switch k {
+		case time.Monday:
+			allMenu[0] = append(allMenu[0], v...)
+		case time.Tuesday:
+			allMenu[1] = append(allMenu[1], v...)
+		case time.Wednesday:
+			allMenu[2] = append(allMenu[1], v...)
+		case time.Thursday:
+			allMenu[3] = append(allMenu[1], v...)
+		case time.Friday:
+			allMenu[4] = append(allMenu[1], v...)
+		}
+	}
+	return allMenu
+}
+
+func Menu() *menutable {
+	return mem
 }

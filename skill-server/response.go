@@ -1,5 +1,7 @@
 package skillserver
 
+import "fmt"
+
 type SkillResponseType struct {
 	Version  string       `json:"version"`
 	Template TemplateType `json:"template,omitempty"`
@@ -36,4 +38,37 @@ type ICItem struct {
 type CarouselType struct {
 	Type  string         `json:"type"`
 	Items []ItemCardType `json:"items"`
+}
+
+func GetOneMenuReasponse(menu []string) *SkillResponseType {
+	fmt.Println(menu)
+	itemList := []ICItem{}
+	for i, v := range menu {
+		itemList = append(itemList, ICItem{Title: fmt.Sprintf("%d", i), Description: v})
+	}
+	itemCard := ItemCardType{
+		Profile: ICProfile{
+			Title: "점심",
+		},
+		ItemList: itemList,
+	}
+	items := []ItemCardType{
+		itemCard,
+	}
+	carousl := CarouselType{
+		Type:  "ItemCard",
+		Items: items,
+	}
+	outputs := []OutputsType{
+		{carousl},
+	}
+	template := TemplateType{
+		outputs,
+	}
+	res := SkillResponseType{
+		Version:  "2.0",
+		Template: template,
+	}
+
+	return &res
 }
