@@ -21,8 +21,8 @@ func getTomorrow() time.Weekday {
 
 type HRCMenuService struct{}
 
-func (HRCMenuService) Today(which constants.LunOrDin) []string {
-	return mem.GetOne(which, getToday()-2)
+func (HRCMenuService) GetMenu(which constants.LunOrDin, weekday time.Weekday) []string {
+	return mem.GetOne(which, weekday)
 }
 func (HRCMenuService) Tomorrow(which constants.LunOrDin) []string {
 	return mem.GetOne(which, getTomorrow())

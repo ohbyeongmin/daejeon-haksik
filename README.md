@@ -1,7 +1,13 @@
 # 대전대학교 HRC 학식 메뉴 알림 카카오봇 스킬 서버
 
 -   해결해야 할 과제 :
--   엑셀 파일을 어떻게 Go 데이터로 저장하고 json 으로 표현 할지...
+    [x] 엑셀 파일을 어떻게 Go 데이터로 저장하고 json 으로 표현 할지...
+    [x] 아이템카드는 케로셀 형태에서 리스트가 5개밖에 안된다.... 케로셀 안하기로...
+    [ ] 발화 패턴, 엔티티 다시 효율적으로 어떻게 할지 생각해보기...
+    [ ] 핸들링 리팩터링
+    [ ] 에러 처리
+    [ ] 주 마다 자동으로 식단표 크롤링 해오는 기능
+    [ ] EC2 서버에 배포 (Dockerfile 작성)
 
 ```
 http.HandleFunc("/today", func(rw http.ResponseWriter, r *http.Request) {
@@ -38,6 +44,7 @@ http.HandleFunc("/today", func(rw http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Listen on http://localhost:3000")
 	http.ListenAndServe(":3000", nil)
+	lunch_or_dinner:저녁 sys_date:{"date": "2021-10-12", "dateTag": "Tuesday", "dateHeadword": null, "year": null, "month": null, "day": null}]}}
 ```
 
 ```

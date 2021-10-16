@@ -4,25 +4,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/ohbyeongmin/daejeon-haksik/constants"
 	"github.com/ohbyeongmin/daejeon-haksik/utils"
 )
 
 const port string = ":3000"
 
 func TodayHandler(rw http.ResponseWriter, r *http.Request) {
-	menu := HRCService.Today(constants.LUNCH)
+	var weekDay time.Weekday
+	params := BotRequestType{
+		Action: ActionType{
+			Params: make(map[string]string),
+		},
+	}
+	json.NewDecoder(r.Body).Decode(&params)
+
+	dateTag, day := utils.ParseSysdate(params.Action.Params["sys_date"])
+	lunchOrDinner, err := utils.StringToLunOrDin(params.Action.Params["lunch_dinner"])
+	utils.HandleErr(err)
+
+	// 이번주 체크
+	// if !utils.CheckThisWeek(day) {
+	// 	fmt.Println("unvalid day")
+	// 	return
+	// }
+	t := time.Now()
+	if day != 0 {
+		weekDay = utils.DayToWeekday(day)
+	} else if dateTag == "today" {
+		weekDay = t.Weekday()
+	} else if dateTag == "tomorrow" {
+		weekDay = t.Add(time.Hour * 24).Weekday()
+	} else if dateTag == "Monday" {
+		weekDay = time.Monday
+	} else if dateTag == "Tuesday" {
+		weekDay = time.Tuesday
+	} else if dateTag == "Wednesday" {
+		weekDay = time.Wednesday
+	} else if dateTag == "Thursday" {
+		weekDay = time.Thursday
+	} else if dateTag == "Friday" {
+		weekDay = time.Friday
+	}
+
+	menu := HRCService.GetMenu(lunchOrDinner, weekDay)
 	json.NewEncoder(rw).Encode(GetOneMenuReasponse(menu))
-}
-
-func TomorrowHandler(rw http.ResponseWriter, r *http.Request) {
-	// json.NewEncoder(rw).Encode(HRCService.Tomorrow())
-}
-
-func AllHandler(rw http.ResponseWriter, r *http.Request) {
-	// json.NewEncoder(rw).Encode(HRCService.AllWeeks())
 }
 
 func jsonContentTypeMiddleware(next http.Handler) http.Handler {
@@ -35,11 +63,9 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 func ServerStart() {
 	r := mux.NewRouter()
 	r.Use(jsonContentTypeMiddleware)
-	r.HandleFunc("/today", TodayHandler).Methods("GET")
-	r.HandleFunc("/tomorrow", TomorrowHandler).Methods("GET")
-	r.HandleFunc("/all", AllHandler).Methods("GET")
+	r.HandleFunc("/today", TodayHandler).Methods("POST")
 
-	fmt.Printf("Listen on http://localhost%s", port)
+	fmt.Printf("Listen on http://localhost%s\n", port)
 	if err := http.ListenAndServe(port, r); err != nil {
 		utils.HandleErr(err)
 	}
