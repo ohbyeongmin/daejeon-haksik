@@ -100,4 +100,5 @@ func DownloadDietFile() {
 	utils.HandleErr(err)
 
 	file.Write(download)
+	defer file.Close()
 }

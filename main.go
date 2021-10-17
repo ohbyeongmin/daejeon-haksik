@@ -1,9 +1,12 @@
 package main
 
-import skillserver "github.com/ohbyeongmin/daejeon-haksik/skill-server"
+import (
+	"github.com/ohbyeongmin/daejeon-haksik/cli"
+	_ "github.com/ohbyeongmin/daejeon-haksik/crawling"
+)
 
 func main() {
-	skillserver.ServerStart()
+	cli.Start()
 }
 
 // 월요일 아침 10시마다 데이터 다운로드 및 초기화

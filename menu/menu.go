@@ -9,26 +9,20 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func getToday() time.Weekday {
-	t := time.Now()
-	return t.Weekday()
-}
+// func getToday() time.Weekday {
+// 	t := time.Now()
+// 	return t.Weekday()
+// }
 
-func getTomorrow() time.Weekday {
-	t := time.Now()
-	return t.Add(time.Hour * 24).Weekday()
-}
+// func getTomorrow() time.Weekday {
+// 	t := time.Now()
+// 	return t.Add(time.Hour * 24).Weekday()
+// }
 
 type HRCMenuService struct{}
 
 func (HRCMenuService) GetMenu(which constants.LunOrDin, weekday time.Weekday) []string {
 	return mem.GetOne(which, weekday)
-}
-func (HRCMenuService) Tomorrow(which constants.LunOrDin) []string {
-	return mem.GetOne(which, getTomorrow())
-}
-func (HRCMenuService) AllWeeks(which constants.LunOrDin) [][]string {
-	return mem.GetAll(which)
 }
 
 const (
@@ -46,7 +40,7 @@ type menutable struct {
 
 var mem *menutable
 
-func init() {
+func InitMenu() {
 	// crawling.DownloadDietFile()
 	mem = &menutable{
 		table: make(map[constants.LunOrDin]menu),
